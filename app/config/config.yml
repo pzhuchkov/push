@@ -2,6 +2,7 @@ imports:
     - { resource: parameters.yml }
     - { resource: security.yml }
     - { resource: services.yml }
+    - { resource: fos.yml }
 
 # Put parameters here that don't need to change on each machine where the app is deployed
 # http://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
@@ -18,7 +19,7 @@ framework:
     form:            ~
     csrf_protection: ~
     validation:      { enable_annotations: true }
-    #serializer:      { enable_annotations: true }
+    serializer:      true
     templating:
         engines: ['twig']
     default_locale:  "%locale%"
@@ -66,3 +67,20 @@ swiftmailer:
     username:  "%mailer_user%"
     password:  "%mailer_password%"
     spool:     { type: memory }
+
+
+rs_queue:
+
+    # Queues definition
+    queues:
+        messages: "queues:messages"
+
+    # Serializer definition
+    serializer: ~
+
+    # Server configuration. By default, these values
+    server:
+        redis:
+            host: "%redis_host%"
+            port: 6379
+            database: 2

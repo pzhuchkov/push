@@ -1,0 +1,41 @@
+fos_rest:
+    view:
+        view_response_listener: force
+        failed_validation: HTTP_BAD_REQUEST
+        serialize_null: true
+#        exception_wrapper_handler:  null
+        formats:
+            json: true
+            txt: true
+    allowed_methods_listener: true
+    body_listener: true
+    format_listener:
+        rules:
+            # setting fallback_format to json means that instead of considering
+            # the next rule in case of a priority mismatch, json will be used
+            - { path: ^/api, priorities: ['json'], fallback_format: json, prefer_extension: true }
+            - { path: ^/, priorities: ['html', 'css', 'js', 'json'], fallback_format: html, prefer_extension: false }
+    param_fetcher_listener: force
+
+    body_converter:
+        enabled: true
+        validate: true
+    exception:
+        codes:
+            'Symfony\Component\Routing\Exception\ResourceNotFoundException': 404
+            'Doctrine\ORM\OptimisticLockException': HTTP_CONFLICT
+        messages:
+            'Symfony\Component\Routing\Exception\ResourceNotFoundException': true
+            'Symfony\Component\HttpKernel\Exception\ConflictHttpException': true
+            'Symfony\Component\HttpKernel\Exception\BadRequestHttpException': true
+
+    routing_loader:
+        default_format: json
+#        include_format: false
+    serializer:
+        serialize_null: true
+
+    access_denied_listener:
+        json: true
+
+    disable_csrf_role: ROLE_OSS

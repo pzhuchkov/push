@@ -1,0 +1,18 @@
+Push\StatBundle\Entity\Book:
+    type: entity
+    table: book
+    repositoryClass: Push\StatBundle\Repository\BookRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: IDENTITY
+    uniqueConstraints:
+        name_idx:
+            columns: [ name ]
+    fields:
+        name:
+            type: string
+            length: 255
+            unique: true

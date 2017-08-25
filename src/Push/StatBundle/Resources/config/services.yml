@@ -1,4 +1,10 @@
 services:
-#    push_stat.example:
-#        class: Push\StatBundle\Example
-#        arguments: ["@service_id", "plain_value", %parameter%]
+    push.stat.service.inotify_manager:
+        class: Push\StatBundle\Service\InotifyManager
+        arguments:
+            - '@rs_queue.producer'
+            - '@logger'
+
+    push.stat.service.word_manager:
+        class: Push\StatBundle\Service\WordManager
+        arguments: ['@doctrine']

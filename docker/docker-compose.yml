@@ -2,8 +2,7 @@ version: '2'
 
 services:
     postgres:
-        restart: always
-        image: kiasaki/alpine-postgres:9.5
+        image: postgres
         environment:
             - POSTGRES_USER:'push'
             - POSTGRES_PASSWORD:'push'
@@ -11,7 +10,7 @@ services:
         ports:
             - '5432:5432'
         volumes:
-            - ./.data/pgdb:/var/lib/postgresql/data
+            - ./data/pg:/var/lib/postgresql/data
     php:
         build: php7-fpm
         volumes:

@@ -24,3 +24,4 @@
 /tmp
 /app/swiftmailer
 phpunit.bootstrap.php
+.idea

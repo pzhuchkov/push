@@ -1,0 +1,20 @@
+Push\StatBundle\Entity\WordStat:
+    type: entity
+    table: word_stat
+    repositoryClass: Push\StatBundle\Repository\WordStatRepository
+    id:
+        id:
+            type: bigint
+            id: true
+            generator:
+                strategy: IDENTITY
+    uniqueConstraints:
+        word_stat_book_idx:
+            columns: [ word, book_id ]
+    fields:
+        word:
+            type: string
+        val:
+            type: bigint
+        bookId:
+            type: bigint
