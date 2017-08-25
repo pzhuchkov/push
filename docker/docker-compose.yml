@@ -1,0 +1,41 @@
+version: '2'
+
+services:
+    postgres:
+        restart: always
+        image: kiasaki/alpine-postgres:9.5
+        environment:
+            - POSTGRES_USER:'push'
+            - POSTGRES_PASSWORD:'push'
+            - POSTGRES_DB:'push_stat'
+        ports:
+            - '5432:5432'
+        volumes:
+            - ./.data/pgdb:/var/lib/postgresql/data
+    php:
+        build: php7-fpm
+        volumes:
+            - ../:/var/www/symfony
+            - ./logs/symfony:/var/www/symfony/app/logs
+    nginx:
+        build: nginx
+        ports:
+            - 80:80
+        volumes_from:
+            - php
+        volumes:
+            - ./logs/nginx/:/var/log/nginx
+    elk:
+        image: willdurand/elk
+        ports:
+            - 81:80
+        volumes:
+            - ./elk/logstash:/etc/logstash
+            - ./elk/logstash/patterns:/opt/logstash/patterns
+        volumes_from:
+            - php
+            - nginx
+    redis:
+        image: redis:alpine
+        ports:
+            - 6379:6379

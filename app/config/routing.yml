@@ -1,0 +1,3 @@
+push_stat:
+    resource: "@PushStatBundle/Resources/config/routing.yml"
+    prefix:   /

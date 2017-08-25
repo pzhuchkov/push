@@ -1,0 +1,3 @@
+push_stat_homepage:
+    path:     /
+    defaults: { _controller: PushStatBundle:Default:index }
