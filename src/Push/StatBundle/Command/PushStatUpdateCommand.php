@@ -60,6 +60,56 @@ class PushStatUpdateCommand extends ConsumerCommand
     }
 
     /**
+     * Execute code.
+     *
+     * Each time new payload is consumed from queue, consume() method is called.
+     * When iterations get the limit, process literaly dies
+     *
+     * @param InputInterface  $input  An InputInterface instance
+     * @param OutputInterface $output An OutputInterface instance
+     *
+     * @throws InvalidAliasException If any alias is not defined
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $this->define();
+
+        $consumer = $this->getContainer()->get('rs_queue.consumer');
+        $iterations = (int)$input->getOption('iterations');
+        $timeout = (int)$input->getOption('timeout');
+        $sleep = (int)$input->getOption('sleep');
+        $iterationsDone = 0;
+        $queuesAlias = array_keys($this->methods);
+
+        if ($this->shuffleQueues()) {
+
+            shuffle($queuesAlias);
+        }
+
+        while ($response = $consumer->consume($queuesAlias, $timeout)) {
+
+            list($queueAlias, $payload) = $response;
+            $method = $this->methods[$queueAlias];
+
+            /**
+             * All custom methods must have these parameters
+             *
+             * InputInterface  $input   An InputInterface instance
+             * OutputInterface $output  An OutputInterface instance
+             * Mixed           $payload Payload
+             */
+            $this->$method($input, $output, $payload);
+
+            if (($iterations > 0) && (++$iterationsDone >= $iterations)) {
+
+                break;
+            }
+
+            sleep($sleep);
+        }
+    }
+
+    /**
      * Relates queue name with appropiated method
      */
     public function define()
@@ -114,6 +164,15 @@ class PushStatUpdateCommand extends ConsumerCommand
                     )
                 );
         }
+
+        $this->getLogger()->debug(
+            'PUSH_STAT_UPDATE',
+            [
+                'finish_parsing' => $payload,
+                'resource' => \PHP_Timer::resourceUsage(),
+            ]
+        );
+
         $this->getContainer()->get('cache.app')->clear();
     }
 }

@@ -220,6 +220,8 @@ class WordManager
                 continue;
             }
 
+            $buff = $this->clean($buff);
+
             if (!array_key_exists($buff, $this->cache)) {
                 $this->cache[$buff] = 0;
             }
@@ -236,6 +238,7 @@ class WordManager
         }
 
         if (strlen($buff) > 0) {
+            $buff = $this->clean($buff);
             if (!array_key_exists($buff, $this->cache)) {
                 $this->cache[$buff] = 0;
             }
@@ -244,6 +247,18 @@ class WordManager
 
             $this->counter++;
         }
+    }
+
+    /**
+     * clean
+     *
+     * @param string $string string
+     *
+     * @return mixed
+     */
+    protected function clean($string)
+    {
+        return preg_replace('/[^\w\s]+/u', '', $string);
     }
 
     /**
