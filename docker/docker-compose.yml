@@ -10,7 +10,7 @@ services:
         ports:
             - '5432:5432'
         volumes:
-            - ./data/pg:/var/lib/postgresql/data
+            - ./.data/pg:/var/lib/postgresql/data
     php:
         build: php7-fpm
         volumes:

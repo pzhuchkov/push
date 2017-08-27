@@ -52,6 +52,7 @@ class InotifyManager
      */
     public function listen($directory)
     {
+        $directory = rtrim($directory, '/');
         if (!file_exists($directory)) {
             throw new \RuntimeException(sprintf('Directory "%s" not found'));
         }
@@ -68,7 +69,7 @@ class InotifyManager
 
             if ($events[0]['wd'] === $watch_id) {
                 $message = [
-                    'path' => $directory . $events[0]['name'],
+                    'path' => $directory . '/' . $events[0]['name'],
                     'mask' => $events[0]['mask'],
                 ];
                 $this->p->produce(

@@ -7,4 +7,6 @@ services:
 
     push.stat.service.word_manager:
         class: Push\StatBundle\Service\WordManager
-        arguments: ['@doctrine']
+        arguments:
+            - '@doctrine'
+            - '@logger'

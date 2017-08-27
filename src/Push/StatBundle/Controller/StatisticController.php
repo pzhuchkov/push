@@ -3,6 +3,7 @@
 namespace Push\StatBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
@@ -17,6 +18,16 @@ use FOS\RestBundle\Controller\Annotations\QueryParam;
  */
 class StatisticController extends Controller
 {
+    /**
+     * getC
+     *
+     * @return RedisAdapter
+     */
+    protected function getC()
+    {
+        return $this->container->get('cache.app');
+    }
+
     /**
      * Получение кол-ва книг в базе
      *
@@ -36,19 +47,26 @@ class StatisticController extends Controller
      */
     public function getBooksCountAction()
     {
-        $qb = $this
-            ->getDoctrine()
-            ->getRepository('PushStatBundle:Book')
-            ->createQueryBuilder('book');
+        $result = $this->getC()->getItem(md5(__METHOD__));
 
-        return new JsonResponse(
-            [
+        if (!$result->isHit()) {
+            $qb = $this
+                ->getDoctrine()
+                ->getRepository('PushStatBundle:Book')
+                ->createQueryBuilder('book');
+
+            $response = [
                 'Result' => $qb
                     ->select($qb->expr()->count('book.id'))
                     ->getQuery()
                     ->getSingleScalarResult(),
-            ]
-        );
+            ];
+
+            $result->set(json_encode($response));
+            $this->getC()->save($result);
+        }
+
+        return new JsonResponse(json_decode($result->get()));
     }
 
     /**
@@ -75,21 +93,28 @@ class StatisticController extends Controller
      */
     public function getBooksAction($offset = 0, $limit = 10)
     {
-        $qb = $this
-            ->getDoctrine()
-            ->getRepository('PushStatBundle:Book')
-            ->createQueryBuilder('book');
+        $result = $this->getC()->getItem(md5(__METHOD__));
 
-        return new JsonResponse(
-            [
+        if (!$result->isHit()) {
+            $qb = $this
+                ->getDoctrine()
+                ->getRepository('PushStatBundle:Book')
+                ->createQueryBuilder('book');
+
+            $response = [
                 'Result' => $qb
                     ->select('book.name')
                     ->setMaxResults($limit)
                     ->setFirstResult($offset)
                     ->getQuery()
                     ->getArrayResult(),
-            ]
-        );
+            ];
+
+            $result->set(json_encode($response));
+            $this->getC()->save($result);
+        }
+
+        return new JsonResponse(json_decode($result->get()));
     }
 
     /**
@@ -110,20 +135,27 @@ class StatisticController extends Controller
      */
     public function getBooksWordCountAction()
     {
-        $qb = $this
-            ->getDoctrine()
-            ->getRepository('PushStatBundle:WordStat')
-            ->createQueryBuilder('stat');
+        $result = $this->getC()->getItem(md5(__METHOD__));
 
-        return new JsonResponse(
-            [
+        if (!$result->isHit()) {
+            $qb = $this
+                ->getDoctrine()
+                ->getRepository('PushStatBundle:WordStat')
+                ->createQueryBuilder('stat');
+
+            $response = [
                 'Result' => (int)$qb
                     ->select('SUM(stat.val)')
                     ->where($qb->expr()->eq('stat.bookId', 0))
                     ->getQuery()
                     ->getSingleScalarResult(),
-            ]
-        );
+            ];
+
+            $result->set(json_encode($response));
+            $this->getC()->save($result);
+        }
+
+        return new JsonResponse(json_decode($result->get()));
     }
 
     /**
@@ -147,18 +179,20 @@ class StatisticController extends Controller
      */
     public function getBookWordCountAction($book)
     {
-        $qb = $this
-            ->getDoctrine()
-            ->getRepository('PushStatBundle:WordStat')
-            ->createQueryBuilder('stat');
+        $result = $this->getC()->getItem(md5(__METHOD__));
 
-        $qb2 = $this
-            ->getDoctrine()
-            ->getRepository('PushStatBundle:Book')
-            ->createQueryBuilder('book');
+        if (!$result->isHit()) {
+            $qb = $this
+                ->getDoctrine()
+                ->getRepository('PushStatBundle:WordStat')
+                ->createQueryBuilder('stat');
 
-        return new JsonResponse(
-            [
+            $qb2 = $this
+                ->getDoctrine()
+                ->getRepository('PushStatBundle:Book')
+                ->createQueryBuilder('book');
+
+            $response = [
                 'Result' => $qb
                     ->select($qb->expr()->count('stat.id'))
                     ->where(
@@ -175,8 +209,13 @@ class StatisticController extends Controller
                     ->setParameter('name', $book)
                     ->getQuery()
                     ->getSingleScalarResult(),
-            ]
-        );
+            ];
+
+            $result->set(json_encode($response));
+            $this->getC()->save($result);
+        }
+
+        return new JsonResponse(json_decode($result->get()));
     }
 
     /**
@@ -200,13 +239,15 @@ class StatisticController extends Controller
      */
     public function getBooksFrequencyCountAction($word)
     {
-        $qb = $this
-            ->getDoctrine()
-            ->getRepository('PushStatBundle:WordStat')
-            ->createQueryBuilder('stat');
+        $result = $this->getC()->getItem(md5(__METHOD__));
 
-        return new JsonResponse(
-            [
+        if (!$result->isHit()) {
+            $qb = $this
+                ->getDoctrine()
+                ->getRepository('PushStatBundle:WordStat')
+                ->createQueryBuilder('stat');
+
+            $response = [
                 'Result' => $qb
                     ->select('stat.val')
                     ->where($qb->expr()->eq('stat.bookId', 0))
@@ -214,8 +255,13 @@ class StatisticController extends Controller
                     ->setParameter('word', $word)
                     ->getQuery()
                     ->getSingleScalarResult(),
-            ]
-        );
+            ];
+
+            $result->set(json_encode($response));
+            $this->getC()->save($result);
+        }
+
+        return new JsonResponse(json_decode($result->get()));
     }
 
     /**
@@ -239,18 +285,20 @@ class StatisticController extends Controller
      */
     public function getBookFrequencyCountAction($book, $word)
     {
-        $qb = $this
-            ->getDoctrine()
-            ->getRepository('PushStatBundle:WordStat')
-            ->createQueryBuilder('stat');
+        $result = $this->getC()->getItem(md5(__METHOD__));
 
-        $qb2 = $this
-            ->getDoctrine()
-            ->getRepository('PushStatBundle:Book')
-            ->createQueryBuilder('book');
+        if (!$result->isHit()) {
+            $qb = $this
+                ->getDoctrine()
+                ->getRepository('PushStatBundle:WordStat')
+                ->createQueryBuilder('stat');
 
-        return new JsonResponse(
-            [
+            $qb2 = $this
+                ->getDoctrine()
+                ->getRepository('PushStatBundle:Book')
+                ->createQueryBuilder('book');
+
+            $response = [
                 'Result' => $qb
                     ->select('stat.val')
                     ->where(
@@ -271,7 +319,12 @@ class StatisticController extends Controller
                     ->setParameter('book', $book)
                     ->getQuery()
                     ->getSingleScalarResult(),
-            ]
-        );
+            ];
+
+            $result->set(json_encode($response));
+            $this->getC()->save($result);
+        }
+
+        return new JsonResponse(json_decode($result->get()));
     }
 }

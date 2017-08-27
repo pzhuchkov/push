@@ -5,6 +5,7 @@ namespace Push\StatBundle\Command;
 use Mmoreram\RSQueueBundle\Command\ConsumerCommand;
 use Push\StatBundle\Service\InotifyManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -113,5 +114,6 @@ class PushStatUpdateCommand extends ConsumerCommand
                     )
                 );
         }
+        $this->getContainer()->get('cache.app')->clear();
     }
 }

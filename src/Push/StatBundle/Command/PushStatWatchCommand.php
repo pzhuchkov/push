@@ -63,6 +63,7 @@ class PushStatWatchCommand extends ContainerAwareCommand
         );
 
         \PHP_Timer::start();
+
         $this->getInotifyManager()->listen($directory);
 
         $output->writeln(sprintf('<info>%</info>', \PHP_Timer::resourceUsage()));

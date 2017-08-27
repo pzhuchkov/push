@@ -11,6 +11,7 @@ namespace Push\StatBundle\Service;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Push\StatBundle\Entity\Book;
 use Symfony\Component\Filesystem\Filesystem;
+use Monolog\Logger;
 
 /**
  * Class WordManager
@@ -23,6 +24,10 @@ class WordManager
      * @var Registry
      */
     protected $doctrine;
+    /**
+     * @var Logger
+     */
+    protected $l;
 
     /**
      * @var int
@@ -76,10 +81,12 @@ class WordManager
      * WordManager constructor.
      *
      * @param Registry $doctrine
+     * @param Logger   $logger
      */
-    public function __construct(Registry $doctrine)
+    public function __construct(Registry $doctrine, Logger $logger)
     {
         $this->doctrine = $doctrine;
+        $this->l = $logger;
     }
 
     /**
@@ -92,7 +99,7 @@ class WordManager
     public function add($name)
     {
         if (!file_exists($name)) {
-            throw new \RuntimeException(sprintf('File "%s" not found'));
+            throw new \RuntimeException(sprintf('File "%s" not found', $name));
         }
 
         $file = new \SplFileObject($name);
@@ -122,12 +129,10 @@ class WordManager
      */
     public function remove($name)
     {
-        $file = new \SplFileObject($name);
-
         $this->currentBook = $this
             ->getM()
             ->getRepository('PushStatBundle:Book')
-            ->create($file->getFilename());
+            ->create(basename($name));
 
         if (is_null($this->currentBook)) {
             throw new \RuntimeException(
@@ -148,29 +153,41 @@ class WordManager
             ->getQuery()
             ->getArrayResult();
 
-        $sql = [];
-        foreach ($words as $word) {
-            $sql[] = sprintf(
-                'UPDATE word_stat SET val = val - %d WHERE word = \'%s\' AND book_id = 0',
-                $word['val'],
-                $word['word']
+        if (count($words)) {
+            $sql = '';
+            foreach ($words as $word) {
+
+                $sql = sprintf(
+                    'UPDATE word_stat SET val = val - %d WHERE word = \'%s\' AND book_id = 0',
+                    $word['val'],
+                    $word['word']
+                );
+
+                $this->l->debug('WORD_MANAGER', ['sql' => $sql]);
+
+                $this->getC()->executeQuery($sql);
+            }
+
+            $qb = $this
+                ->doctrine
+                ->getRepository('PushStatBundle:WordStat')
+                ->createQueryBuilder('wordStat');
+
+            $qb
+                ->delete()
+                ->where($qb->expr()->eq('wordStat.bookId', ':book'))
+                ->setParameter('book', $this->currentBook->getId())
+                ->getQuery()
+                ->getResult();
+        } else {
+            $this->l->debug(
+                'WORD_MANAGER',
+                [
+                    'detail' => "words not found in db",
+                ]
             );
         }
 
-
-        $this->getC()->executeQuery(implode(';', $sql));
-
-        $qb = $this
-            ->doctrine
-            ->getRepository('PushStatBundle:WordStat')
-            ->createQueryBuilder('wordStat');
-
-        $qb
-            ->delete()
-            ->where($qb->expr()->eq('wordStat.bookId', ':book'))
-            ->setParameter('book', $this->currentBook->getId())
-            ->getQuery()
-            ->getResult();
 
         $this->getM()->remove($this->currentBook);
         $this->getM()->flush();
@@ -193,6 +210,9 @@ class WordManager
      */
     protected function parseLine($line)
     {
+        if (strlen($line) === 0) {
+            return;
+        }
         $buff = $line[0];
         for ($i = 1; $i < strlen($line); $i++) {
             if ($line[$i] != ' ') {
@@ -201,16 +221,28 @@ class WordManager
             }
 
             if (!array_key_exists($buff, $this->cache)) {
-                $this->cache[$buff] = 1;
+                $this->cache[$buff] = 0;
             }
 
             $this->cache[$buff]++;
 
             $this->counter++;
 
+            $buff = '';
+
             if ($this->counter >= $this->bulk) {
                 $this->insert();
             }
+        }
+
+        if (strlen($buff) > 0) {
+            if (!array_key_exists($buff, $this->cache)) {
+                $this->cache[$buff] = 0;
+            }
+
+            $this->cache[$buff]++;
+
+            $this->counter++;
         }
     }
 
@@ -263,5 +295,6 @@ class WordManager
         );
 
         $this->counter = 0;
+        $this->cache = [];
     }
 }
