@@ -8,7 +8,7 @@ assets:
 	php bin/console assets:install --symlink --relative
 
 composer:
-	composer update  --no-progress --profile --prefer-dist
+	composer install
 
 test:
 	php vendor/bin/phpunit --configuration phpunit.xml.dist

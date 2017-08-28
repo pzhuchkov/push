@@ -9,6 +9,8 @@
 ```bash
 make up # Запуск докера
 make php # Вход в докер
+make composer # Установка вендоров
+cp app/config/parameters.yml.dist app/config/parameters.yml # Установка конфига
 make clear_setup # Создание БД
 sf push:stat:watch /var/www/symfony/var/tmp/ # Запуск команда по слежению за файлами
 sf push:stat:update # Запуск команды по просчету файлов(можно несколько процессов запустить
