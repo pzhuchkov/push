@@ -1,0 +1,13 @@
+version: "2"
+# docker-sync.yml
+syncs:
+# this name has to be unique and is used in docker-compose.yml as well
+    symfony-data-sync:
+        src: '../' # the directory on the host system
+        #    dest: '/var/www/symfony' # the directory on the container
+        sync_userid: from_host
+        sync_host_ip: 'localhost' # localhost for docker for mac
+        sync_host_port: 10872 # unique port
+        #    sync_strategy: 'unison'
+        max_attempt: 50
+        watch_excludes: ['.*/.git', '.*/node_modules', '.*/bower_components', '.*/sass-cache', '.*/.sass-cache', '.*/.sass-cache', '.coffee', '.scss', '.sass', '.gitignore']

@@ -9,13 +9,13 @@ services:
             - POSTGRES_DB:'push_stat'
         ports:
             - '5432:5432'
-        volumes:
-            - ./.data/pg:/var/lib/postgresql/data
+#        volumes:
+#            - ./.data/pg:/var/lib/postgresql/data
     php:
         build: php7-fpm
-        volumes:
-            - ../:/var/www/symfony
-            - ./logs/symfony:/var/www/symfony/app/logs
+#        volumes:
+#            - ../:/var/www/symfony
+#            - ./logs/symfony:/var/www/symfony/app/logs
     nginx:
         build: nginx
         ports:

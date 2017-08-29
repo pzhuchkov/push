@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+    php:
+        build: php7-fpm
+        volumes:
+            - symfony-data-sync:/var/www/symfony:rw
+volumes:
+    symfony-data-sync:
+        external: true
